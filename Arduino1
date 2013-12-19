@@ -1,0 +1,49 @@
+
+#include <LiquidCrystal.h> 
+#include <SoftwareSerial.h>
+
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+char x;
+int led = 6;
+
+SoftwareSerial portOne(9,10);
+
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(led, OUTPUT); 
+  Serial.begin(9600);
+  portOne.begin(9600);
+  Serial.println("Hola");
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print ("AFORO");
+
+}
+
+void loop() {
+
+  lcd.setCursor(0, 1);
+  
+
+  if (portOne.available()) {
+    x=portOne.read();
+    char s='s';
+    if(x=='s'){
+     lcd.print("Seguridad");
+     delay(1500);
+     lcd.clear();
+     lcd.setCursor(0, 0);
+     lcd.print ("AFORO");
+     lcd.setCursor(0, 1);
+     
+    }  else { 
+    //digitalWrite(led, HIGH);
+    Serial.print(x);
+    x=(int)x;
+    lcd.print (x);
+    }
+  }
+}
