@@ -1,0 +1,159 @@
+/*
+  Analog Input
+ Demonstrates analog input by reading an analog sensor on analog pin 0 and
+ turning on and off a light emitting diode(LED)  connected to digital pin 13. 
+ The amount of time the LED will be on and off depends on
+ the value obtained by analogRead(). 
+ 
+ The circuit:
+ * Potentiometer attached to analog input 0
+ * center pin of the potentiometer to the analog pin
+ * one side pin (either one) to ground
+ * the other side pin to +5V
+ * LED anode (long leg) attached to digital output 13
+ * LED cathode (short leg) attached to ground
+ 
+ * Note: because most Arduinos have a built-in LED attached 
+ to pin 13 on the board, the LED is optional.
+ 
+ 
+ Created by David Cuartielles
+ modified 30 Aug 2011
+ By Tom Igoe
+ 
+ This example code is in the public domain.
+ 
+ http://arduino.cc/en/Tutorial/AnalogInput
+ 
+ */
+ 
+#include <Servo.h> 
+#include <SoftwareSerial.h>
+
+int  val = 0; 
+char code[10]; 
+int bytesread = 0; 
+
+#define rxPin 10
+#define txPin 11
+// RFID reader SOUT pin connected to Serial RX pin at 2400bps to pin8
+
+
+
+
+Servo myservo;
+
+int pos = 0;
+
+int cont=0;
+const int buttonPin = 7; //boton paso de persona 
+const int buttonPin2 = 5; //boton salida de persona 
+int ledPin = 6; //led paso de persona
+int buttonState = 0;
+int buttonState2 = 0;
+int state = 0;
+int state1 = 0;
+int state2 =0;
+
+
+int sensorPin = A1; //potenciometro lcd
+
+void setup() {
+   Serial.begin(9600); //serial
+   pinMode(buttonPin, INPUT); //boton paso de persona
+   digitalWrite(buttonPin,HIGH);
+   pinMode(buttonPin2, INPUT); //boton salida de persona
+   digitalWrite(buttonPin2,HIGH);
+   pinMode(ledPin, OUTPUT); //led paso de persona
+   myservo.attach(9);  //servo3
+   
+    pinMode(2,OUTPUT);       // Set digital pin 2 as OUTPUT to connect it to the RFID /ENABLE pin 
+    digitalWrite(2, LOW);    // Activate the RFID reader 
+  
+   
+}
+
+void loop() {
+  int buttonState = digitalRead(buttonPin);
+  int buttonState2 = digitalRead(buttonPin2);
+   
+   if (buttonState == LOW) { //el boton esta pulsado
+     if (state != 1) {
+     state = 1;
+     digitalWrite(ledPin, HIGH); 
+     myservo.write(pos+90); //se abre la puerta
+      delay(2000);
+     cont=cont+1; 
+     Serial.print(cont);   
+    
+     }
+   }else{
+     state=0;
+    if ((buttonState == HIGH)&&(buttonState2==HIGH)){
+      myservo.write(pos); //se cierra la puerta
+    }
+     digitalWrite(ledPin, LOW);
+   }
+   
+   
+   
+     if (buttonState2 == LOW) { //el boton esta pulsado
+     if (state1 != 1) {
+     state1 = 1;
+     digitalWrite(ledPin, HIGH); 
+     myservo.write(pos+90); //se abre la puerta
+      delay(2000);
+     cont=cont-1; 
+     Serial.print(cont);   
+    
+     }
+   }else{
+     state1=0;
+    if ((buttonState2 == HIGH)&&(buttonState==HIGH)){
+      myservo.write(pos); //se cierra la puerta
+    }
+     digitalWrite(ledPin, LOW);
+   }
+   
+   
+  
+ 
+  
+  SoftwareSerial RFID = SoftwareSerial(rxPin,txPin); 
+  RFID.begin(2400);
+
+  if((val = RFID.read()) == 10)
+  {   // check for header 
+    bytesread = 0; 
+    while(bytesread<10)
+    {  // read 10 digit code 
+      val = RFID.read(); 
+      if((val == 10)||(val == 13))
+      {  // if header or stop bytes before the 10 digit reading 
+        break;                       // stop reading 
+      } 
+      code[bytesread] = val;         // add the digit           
+      bytesread++;                   // ready to read next digit  
+    } 
+
+    if(bytesread == 10)
+    {  // if 10 digit read is complete 
+    if (state2!=1){
+      state2=1;
+      //Serial.print("TAG code is: ");   // possibly a good TAG 
+      //Serial.print(code);            // print the TAG code
+      Serial.print("s");
+      myservo.write(pos+90); //se abre la puerta
+      delay(2000);
+      myservo.write(pos);
+      cont=cont+1;
+      Serial.print (cont);
+      
+    }
+    }
+    state2=0;
+    bytesread = 0; 
+    delay(500);                       // wait for a second
+  } 
+
+}
